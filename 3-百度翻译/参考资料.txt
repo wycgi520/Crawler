@@ -1,0 +1,51 @@
+https://juejin.im/post/5c3c436551882525851409e5
+
+https://www.cnblogs.com/dayouzi/p/10422556.html
+
+步骤简要: 
+1. 找网页的响应
+
+2. 发现post的数据中要token和sign
+
+3. 在网页主体代码中只能找到token
+
+4. 在js文件中找到token和sign, token=window.common.token , 将window.common.token在console中运行, 得到一串字符
+接着便可确认网页主体代码中的token是正确的
+
+5. 在js文件中包括sign的上下两行设置断点, 刷新网页, 然后把鼠标放在sign=m(a)上, 可以知道a为要翻译的字符, 也可以知道加密函数
+(加密函数一定要有两个,鼠标放在m上显示e(r), 但是调试时报错, 还需要n(r,o)函数, 同时还要定义i = null)
+
+6. 加密函数中window[l]是浏览器的, python运行会出错, 所以要找到window[l]
+
+7.  l = "" + String.fromCharCode(103) + String.fromCharCode(116) + String.fromCharCode(107);
+在console中执行这句话, 得到"gtk"
+然后执行window["gtk"], 得到一串数字, 这串数字可以在网页主体代码中找到, 然后替换window[l]为这串数字, 将上面关于l的赋值算式删掉, 正好替换为i = null
+
+PS: 两点, 1, 用正则表达式替换时注意对[]进行转义(因为[]在正则中使特殊字符);  
+2, 替换数字时, 要替换为"这串数字", 这串数字的左右要加上双引号
+
+8. 至此, 可以通过执行m函数得到sign
+
+9. 最后, 注意要用requests.Session()进行 get 和 post, 用法和requests.get \ reques.post一样, 但是session有以下特性: 
+
+1. session对象能够帮我们跨请求保持某些参数，也会在同一个session实例发出的所有请求之间保持cookies。
+
+2. 提供请求方法的缺省数据，通过设置session对象的属性来实现(如果用同一个session对象get或post时,又设置headers或data ,则会叠加,而不是重置)
+#设置session的headers属性，通过update方法，将其余请求方法中的headers属性合并起来作为最终的请求方法的headers  
+
+s.headers.update({'x-text':'true'})
+
+#发送请求，这里没有设置auth会默认使用session对象的auth属性，这里的headers属性会与session对象的headers属性合并 
+
+r=s.get('http://httpbin.org/headers',headers={'x-test2':'true'}) #如果设置相同的'x-text'则会覆盖上面设置的header
+
+
+3. 函数(get或post)参数中的数据只会使用一次，并不会保存到session中
+r=s.get('http://httpbin.org/headers',headers={'x-test2':'true'})
+print(r.text)
+r=s.get('http://httpbin.org/headers')
+
+4. 如果想get或post时取消一个headers键值对, 那么可以在传递一个相同key，value为None的dict
+r = s.get('http://httpbin.org/headers', headers={'x-test': None})
+
+
